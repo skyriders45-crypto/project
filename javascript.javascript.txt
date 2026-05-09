@@ -1,0 +1,54 @@
+const repairForm = document.getElementById('repairForm');
+const tableBody = document.getElementById('tableBody');
+let tasks = JSON.parse(localStorage.getItem('repairs')) || [];
+
+// Render Tasks
+function renderTasks() {
+    tableBody.innerHTML = '';
+    tasks.forEach((task, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${task.name}</td>
+            <td>${task.device}</td>
+            <td>${task.employee || 'Not Assigned'}</td>
+            <td>
+                <button class="status-btn ${task.status === 'Complete' ? 'complete' : 'pending'}" 
+                onclick="toggleStatus(${index})">${task.status}</button>
+            </td>
+            <td>
+                <button class="delete-btn" onclick="deleteTask(${index})">Delete</button>
+            </td>
+        `;
+        tableBody.appendChild(tr);
+    });
+    document.getElementById('totalCount').innerText = tasks.length;
+    localStorage.setItem('repairs', JSON.stringify(tasks));
+}
+
+// Add Task
+repairForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newTask = {
+        name: document.getElementById('custName').value,
+        device: document.getElementById('device').value,
+        employee: document.getElementById('assignedTo').value,
+        status: 'Pending'
+    };
+    tasks.push(newTask);
+    renderTasks();
+    repairForm.reset();
+});
+
+// Toggle Status (Pending <-> Complete)
+window.toggleStatus = (index) => {
+    tasks[index].status = tasks[index].status === 'Pending' ? 'Complete' : 'Pending';
+    renderTasks();
+};
+
+// Delete Task
+window.deleteTask = (index) => {
+    tasks.splice(index, 1);
+    renderTasks();
+};
+
+renderTasks();
