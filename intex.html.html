@@ -1,0 +1,228 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Computer Repair Shop Dashboard</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f7f8;
+    margin: 0;
+    padding: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+  }
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 25px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  }
+  form {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  input[type="text"], select {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #2980b9;
+    color: white;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  button:hover {
+    background-color: #1d5d94;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  th, td {
+    padding: 12px 10px;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+  th {
+    background-color: #2980b9;
+    color: white;
+  }
+  .status-select {
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+  }
+  .action-btn {
+    padding: 5px 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    color: white;
+  }
+  .edit-btn {
+    background-color: #f39c12;
+  }
+  .delete-btn {
+    background-color: #e74c3c;
+  }
+  @media (max-width: 600px) {
+    form {
+      flex-direction: column;
+    }
+    input[type="text"], select, button {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+    <h1>Computer Repair Shop Dashboard</h1>
+    <form id="taskForm">
+      <input type="text" id="customerName" placeholder="Customer Name" required />
+      <input type="text" id="deviceModel" placeholder="Laptop/PC Model" required />
+      <select id="assignEmployee" required>
+        <option value="" disabled selected>Assign Employee</option>
+        <option value="Ali">Ali</option>
+        <option value="Sara">Sara</option>
+        <option value="Ahmed">Ahmed</option>
+        <option value="Fatima">Fatima</option>
+      </select>
+      <button type="submit">Add Task</button>
+    </form>
+    <div><strong>Total Tasks: </strong><span id="taskCount">0</span></div>
+
+    <table id="tasksTable">
+      <thead>
+        <tr>
+          <th>Customer</th>
+          <th>Device</th>
+          <th>Employee</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="tasksBody">
+        <!-- Task rows appear here -->
+      </tbody>
+    </table>
+  </div>
+
+<script>
+  const taskForm = document.getElementById("taskForm");
+  const tasksBody = document.getElementById("tasksBody");
+  const taskCount = document.getElementById("taskCount");
+
+  let tasks = [];
+
+  function renderTasks() {
+    tasksBody.innerHTML = "";
+
+    tasks.forEach((task, index) => {
+      const tr = document.createElement("tr");
+
+      tr.innerHTML = `
+        <td>${task.customerName}</td>
+        <td>${task.deviceModel}</td>
+        <td>${task.employee}</td>
+        <td>
+          <select class="status-select" data-index="${index}">
+            <option value="Pending" ${task.status === "Pending" ? "selected" : ""}>Pending</option>
+            <option value="In Progress" ${task.status === "In Progress" ? "selected" : ""}>In Progress</option>
+            <option value="Completed" ${task.status === "Completed" ? "selected" : ""}>Completed</option>
+          </select>
+        </td>
+        <td>
+          <button class="action-btn edit-btn" data-index="${index}">Edit</button>
+          <button class="action-btn delete-btn" data-index="${index}">Delete</button>
+        </td>
+      `;
+
+      tasksBody.appendChild(tr);
+    });
+
+    taskCount.textContent = tasks.length;
+
+    // Add event listeners for status change and buttons after rendering
+    document.querySelectorAll(".status-select").forEach(select => {
+      select.addEventListener("change", (e) => {
+        const idx = e.target.getAttribute("data-index");
+        tasks[idx].status = e.target.value;
+      });
+    });
+
+    document.querySelectorAll(".edit-btn").forEach(button => {
+      button.addEventListener("click", (e) => {
+        const idx = e.target.getAttribute("data-index");
+        editTask(idx);
+      });
+    });
+
+    document.querySelectorAll(".delete-btn").forEach(button => {
+      button.addEventListener("click", (e) => {
+        const idx = e.target.getAttribute("data-index");
+        if(confirm("Are you sure you want to delete this task?")) {
+          tasks.splice(idx, 1);
+          renderTasks();
+        }
+      });
+    });
+  }
+
+  function editTask(index) {
+    const task = tasks[index];
+    const newCustomer = prompt("Update Customer Name:", task.customerName);
+    if (newCustomer === null || newCustomer.trim() === "") return;
+
+    const newDevice = prompt("Update Device Model:", task.deviceModel);
+    if (newDevice === null || newDevice.trim() === "") return;
+
+    const newEmployee = prompt("Update Employee:", task.employee);
+    if (newEmployee === null || newEmployee.trim() === "") return;
+
+    tasks[index] = {
+      ...task,
+      customerName: newCustomer.trim(),
+      deviceModel: newDevice.trim(),
+      employee: newEmployee.trim()
+    };
+
+    renderTasks();
+  }
+
+  taskForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const customerName = document.getElementById("customerName").value.trim();
+    const deviceModel = document.getElementById("deviceModel").value.trim();
+    const employee = document.getElementById("assignEmployee").value;
+
+    if(!customerName || !deviceModel || !employee) return alert("Please fill all fields.");
+
+    tasks.push({ customerName, deviceModel, employee, status: "Pending" });
+
+    renderTasks();
+
+    taskForm.reset();
+  });
+
+  // Initial render
+  renderTasks();
+</script>
+</body>
+</html>
